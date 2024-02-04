@@ -25,7 +25,6 @@ const Sidebar = ({ children }) => {
             </button>
           </CopyToClipboard>
         </div>
-
         <div className="w-1/2 mx-10">
           <h6 className="text-lg font-bold">Make a Call</h6>
           <input
@@ -35,6 +34,7 @@ const Sidebar = ({ children }) => {
             placeholder="ID to call"
             className="border p-2 w-full"
           />
+
           {callAccepted && !callEnded ? (
             <button
               onClick={leaveCall}
@@ -44,7 +44,10 @@ const Sidebar = ({ children }) => {
             </button>
           ) : (
             <button
-              onClick={() => callUser(idToCall)}
+              onClick={() => {
+                console.log("Calling user with ID:", idToCall);
+                callUser(idToCall);
+              }}
               className="bg-green-600 text-white p-2 mt-2 w-full"
             >
               Call

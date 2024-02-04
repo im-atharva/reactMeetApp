@@ -11,7 +11,15 @@ const ContextProvider = ({ children }) => {
   const [callEnded, setCallEnded] = useState(false);
   const [stream, setStream] = useState();
   const [name, setName] = useState("");
-  const [call, setCall] = useState({});
+  // const [call, setCall] = useState({});
+  // const [call, setCall] = useState({ isReceivingCall: false });
+  const [call, setCall] = useState({
+    isReceivingCall: false,
+    from: "",
+    name: "",
+    signal: null,
+  });
+
   const [me, setMe] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const myVideo = useRef();
@@ -25,9 +33,7 @@ const ContextProvider = ({ children }) => {
       .then((currentStream) => {
         setStream(currentStream);
 
-        setIsStreaming((prev) => {
-          return true;
-        });
+        setIsStreaming(true);
         if (myVideo.current) {
           myVideo.current.srcObject = currentStream;
         }
@@ -43,7 +49,6 @@ const ContextProvider = ({ children }) => {
 
   const answerCall = () => {
     setCallAccepted(true);
-
     const peer = new Peer({ initiator: false, trickle: false, stream });
 
     peer.on("signal", (data) => {
@@ -54,12 +59,21 @@ const ContextProvider = ({ children }) => {
       userVideo.current.srcObject = currentStream;
     });
 
-    peer.signal(call.signal);
+    // Ensure 'call.signal' is defined before calling 'peer.signal'
+    if (call.signal) {
+      peer.signal(call.signal);
+    }
 
     connectionRef.current = peer;
   };
 
   const callUser = (id) => {
+    // Check if the stream is available before creating a new Peer instance
+    if (!stream) {
+      console.error("Stream is not available");
+      return;
+    }
+
     const peer = new Peer({ initiator: true, trickle: false, stream });
 
     peer.on("signal", (data) => {
@@ -77,12 +91,48 @@ const ContextProvider = ({ children }) => {
 
     socket.on("callAccepted", (signal) => {
       setCallAccepted(true);
-
       peer.signal(signal);
     });
 
     connectionRef.current = peer;
   };
+
+  // const callUser = (id) => {
+  //   const peer = new Peer({ initiator: true, trickle: false, stream });
+
+  //   peer.on("signal", (data) => {
+  //     socket.emit("callUser", {
+  //       userToCall: id,
+  //       signalData: data,
+  //       from: me,
+  //       name,
+  //     });
+  //   });
+
+  //   // Listen for "callAccepted" event
+  //   socket.once("callAccepted", (signal) => {
+  //     setCallAccepted(true);
+
+  //     // Ensure 'peer' is defined before calling 'peer.signal'
+  //     if (peer) {
+  //       peer.signal(signal);
+  //     }
+  //   });
+
+  //   // Set the 'call' state before listening for 'stream' event
+  //   setCall((prevCall) => ({
+  //     ...prevCall,
+  //     isReceivingCall: false, // Assuming you want to set this to false when initiating a call
+  //   }));
+
+  //   peer.on("stream", (currentStream) => {
+  //     if (userVideo.current) {
+  //       userVideo.current.srcObject = currentStream;
+  //     }
+  //   });
+
+  //   connectionRef.current = peer;
+  // };
 
   const leaveCall = () => {
     setCallEnded(true);

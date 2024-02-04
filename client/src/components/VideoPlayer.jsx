@@ -2,18 +2,31 @@ import React, { useContext, useEffect } from "react";
 import { SocketContext } from "../Context.jsx";
 
 const VideoPlayer = () => {
-  const { call, callAccepted, myVideo, userVideo, stream, name, isStreaming } =
-    useContext(SocketContext);
+  const {
+    call,
+    callAccepted,
+    callEnded,
+    myVideo,
+    userVideo,
+    stream,
+    name,
+    isStreaming,
+  } = useContext(SocketContext);
 
   useEffect(() => {
     if (isStreaming && myVideo.current && stream) {
       myVideo.current.srcObject = stream;
     }
   }, [isStreaming, stream, myVideo]);
+  useEffect(() => {
+    if (callAccepted && !callEnded && userVideo.current && call?.stream) {
+      userVideo.current.srcObject = call.stream;
+    }
+  }, [callAccepted, callEnded, userVideo, call?.stream]);
 
   return (
     <div className="flex justify-center flex-col">
-      {isStreaming && (
+      {stream && (
         <div className="p-10 border-white border-2 m-10">
           <h5 className="text-xl text-white font-bold mb-4">
             {name || "Name"}
